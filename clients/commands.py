@@ -1,3 +1,4 @@
+from tabulate import tabulate
 import click
 from click.termui import prompt
 from clients.services import ClientServices
@@ -15,7 +16,7 @@ def clients():
 @click.option('-n', '--name', type=str, prompt=True, help='The clien\'s name')
 @click.option('-c', '--company', type=str, prompt=True, help='The client\'s company')
 @click.option('-e', '--email', type=str, prompt=True, help='The client\'s email')
-@click.option('-n', '--position', type=str, prompt=True, help='The client\'s position')
+@click.option('-p', '--position', type=str, prompt=True, help='The client\'s position')
 @click.pass_context
 def create(ctx, name, company, email, position):
     """Create a client
@@ -29,7 +30,6 @@ def create(ctx, name, company, email, position):
     """
     client = Client(name, company, email, position)
     client_service = ClientServices(ctx.obj['clients_table'])
-
     client_service.create_client(client)
 
 
@@ -41,7 +41,22 @@ def list(ctx):
     Args:
         ctx (dictionary): object context
     """
-    pass
+    clients_service = ClientServices(ctx.obj['clients_table'])
+    clients_list = clients_service.list_clients()
+
+    headers = [field.capitalize() for field in Client.schema()]
+    table = []
+
+    for client in clients_list:
+        table.append([
+            client['name'],
+            client['company'],
+            client['email'],
+            client['position'],
+            client['uid'],
+        ])
+    
+    click.echo(tabulate(table, headers))
 
 
 @clients.command()
